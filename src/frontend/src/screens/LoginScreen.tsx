@@ -8,12 +8,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Shield } from "lucide-react";
+import { Shield } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useApp } from "../contexts/AppContext";
-import { useActor } from "../hooks/useActor";
-import { useInternetIdentity } from "../hooks/useInternetIdentity";
 
 const INCOME_RANGES = [
   { value: "<3L", label: "Below ₹3 Lakh" },
@@ -30,36 +28,18 @@ export function LoginScreen() {
   const [mobile, setMobile] = useState("");
   const [pan, setPan] = useState("");
   const [incomeRange, setIncomeRange] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  const { login, isLoggingIn, isInitializing } = useInternetIdentity();
-  const { actor, isFetching } = useActor();
-  const { setScreen, setProfile, refetchApplications } = useApp();
+  const { setScreen } = useApp();
 
-  async function handleProceed() {
-    if (!actor || isFetching) return;
-    setLoading(true);
-    try {
-      const registered = await actor.isRegistered();
-      if (!registered) {
-        if (!name || !email || !mobile || !pan || !incomeRange) {
-          toast.error("Please complete all fields to register.");
-          setLoading(false);
-          return;
-        }
-        await actor.register(name, email, pan, mobile, incomeRange);
+  function handleProceed() {
+    if (tab === "signup") {
+      if (!name || !email || !mobile || !pan || !incomeRange) {
+        toast.error("Please complete all fields to register.");
+        return;
       }
-      const profile = await actor.getCallerUserProfile();
-      setProfile(profile);
-      await refetchApplications();
-      setScreen("dashboard");
-      toast.success("Welcome to Cready!");
-    } catch (e) {
-      toast.error("Something went wrong. Please try again.");
-      console.error(e);
-    } finally {
-      setLoading(false);
     }
+    toast.success("Welcome to Cready!");
+    setScreen("dashboard");
   }
 
   return (
@@ -84,7 +64,7 @@ export function LoginScreen() {
           </span>
         </div>
         <p className="text-white/80 text-sm text-center max-w-xs">
-          India’s smart financial marketplace
+          India's smart financial marketplace
         </p>
       </div>
 
@@ -95,7 +75,6 @@ export function LoginScreen() {
           <div className="flex rounded-xl overflow-hidden border border-border mb-6">
             <button
               type="button"
-              data-ocid="login.tab"
               onClick={() => setTab("login")}
               className={`flex-1 py-2.5 text-sm font-semibold transition-colors ${
                 tab === "login"
@@ -107,7 +86,6 @@ export function LoginScreen() {
             </button>
             <button
               type="button"
-              data-ocid="signup.tab"
               onClick={() => setTab("signup")}
               className={`flex-1 py-2.5 text-sm font-semibold transition-colors ${
                 tab === "signup"
@@ -120,13 +98,12 @@ export function LoginScreen() {
           </div>
 
           {tab === "login" ? (
-            <div className="space-y-4" data-ocid="login.panel">
+            <div className="space-y-4">
               <div>
                 <Label className="text-xs font-semibold text-muted-foreground mb-1 block">
                   Email
                 </Label>
                 <Input
-                  data-ocid="login.input"
                   type="email"
                   placeholder="yourname@email.com"
                   value={email}
@@ -136,18 +113,16 @@ export function LoginScreen() {
               </div>
               <p className="text-xs text-muted-foreground bg-muted rounded-lg p-3">
                 <Shield size={12} className="inline mr-1" />
-                You’ll be authenticated securely via Internet Identity. No
-                passwords stored.
+                Demo mode — click Continue to explore the app.
               </p>
             </div>
           ) : (
-            <div className="space-y-4" data-ocid="signup.panel">
+            <div className="space-y-4">
               <div>
                 <Label className="text-xs font-semibold text-muted-foreground mb-1 block">
                   Full Name
                 </Label>
                 <Input
-                  data-ocid="signup.name.input"
                   placeholder="Rahul Sharma"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -159,7 +134,6 @@ export function LoginScreen() {
                   Email
                 </Label>
                 <Input
-                  data-ocid="signup.email.input"
                   type="email"
                   placeholder="rahul@email.com"
                   value={email}
@@ -172,7 +146,6 @@ export function LoginScreen() {
                   Mobile Number
                 </Label>
                 <Input
-                  data-ocid="signup.mobile.input"
                   placeholder="9876543210"
                   maxLength={10}
                   value={mobile}
@@ -185,7 +158,6 @@ export function LoginScreen() {
                   PAN Number
                 </Label>
                 <Input
-                  data-ocid="signup.pan.input"
                   placeholder="ABCDE1234F"
                   maxLength={10}
                   value={pan}
@@ -198,10 +170,7 @@ export function LoginScreen() {
                   Annual Income
                 </Label>
                 <Select onValueChange={setIncomeRange} value={incomeRange}>
-                  <SelectTrigger
-                    data-ocid="signup.income.select"
-                    className="h-11"
-                  >
+                  <SelectTrigger className="h-11">
                     <SelectValue placeholder="Select income range" />
                   </SelectTrigger>
                   <SelectContent>
@@ -217,27 +186,10 @@ export function LoginScreen() {
           )}
 
           <Button
-            data-ocid="auth.submit.button"
             className="w-full mt-6 h-12 text-sm font-semibold rounded-xl"
-            onClick={() => {
-              if (!actor) {
-                login();
-              } else {
-                handleProceed();
-              }
-            }}
-            disabled={isLoggingIn || isInitializing || loading}
+            onClick={handleProceed}
           >
-            {(isLoggingIn || isInitializing || loading) && (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            )}
-            {!actor
-              ? "Connect with Internet Identity"
-              : loading
-                ? "Setting up..."
-                : tab === "login"
-                  ? "Continue"
-                  : "Create Account"}
+            {tab === "login" ? "Continue" : "Create Account"}
           </Button>
 
           <p className="mt-4 text-center text-xs text-muted-foreground">

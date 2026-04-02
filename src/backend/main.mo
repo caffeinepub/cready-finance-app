@@ -83,16 +83,23 @@ actor {
   let profiles = Map.empty<Principal, Profile>();
   let applications = Map.empty<Principal, [Application]>();
 
+  // Safe role check: returns false instead of trapping for unknown principals
+  func hasUserPermission(caller : Principal) : Bool {
+    if (caller.isAnonymous()) { return false };
+    switch (accessControlState.userRoles.get(caller)) {
+      case (null) { false };
+      case (?role) { role == #admin or role == #user };
+    };
+  };
+
   // Required frontend functions
   public query ({ caller }) func getCallerUserProfile() : async ?Profile {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view profiles");
-    };
+    if (caller.isAnonymous()) { return null };
     profiles.get(caller);
   };
 
   public shared ({ caller }) func saveCallerUserProfile(profile : Profile) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not hasUserPermission(caller)) {
       Runtime.trap("Unauthorized: Only users can save profiles");
     };
     profiles.add(caller, profile);
@@ -107,7 +114,7 @@ actor {
 
   // Application-specific functions
   public shared ({ caller }) func register(name : Text, email : Text, pan : Text, mobile : Text, incomeRange : Text) : async () {
-    if (profiles.containsKey(caller)) { Runtime.trap("User already registered! ") };
+    if (profiles.containsKey(caller)) { Runtime.trap("User already registered!") };
     let now = Time.now();
     let profile : Profile = {
       id = caller;
@@ -121,9 +128,14 @@ actor {
       lastLogin = now;
     };
     profiles.add(caller, profile);
+    // Auto-assign #user role so the user can call protected endpoints immediately
+    if (not accessControlState.userRoles.containsKey(caller)) {
+      accessControlState.userRoles.add(caller, #user);
+    };
   };
 
   public query ({ caller }) func isRegistered() : async Bool {
+    if (caller.isAnonymous()) { return false };
     profiles.containsKey(caller);
   };
 
@@ -138,7 +150,7 @@ actor {
   };
 
   public shared ({ caller }) func updateProfile(name : Text, lastLogin : ?Int) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not hasUserPermission(caller)) {
       Runtime.trap("Unauthorized: Only users can update profiles");
     };
     switch (profiles.get(caller)) {
@@ -164,7 +176,7 @@ actor {
   };
 
   public shared ({ caller }) func submitApplication(productType : ProductType, lender : Text, productName : Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not hasUserPermission(caller)) {
       Runtime.trap("Unauthorized: Only users can submit applications");
     };
     let application : Application = {
@@ -184,8 +196,8 @@ actor {
   };
 
   public query ({ caller }) func getMyApplications() : async [Application] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view applications");
+    if (not hasUserPermission(caller)) {
+      return [];
     };
     switch (applications.get(caller)) {
       case (null) { [] };
@@ -194,7 +206,7 @@ actor {
   };
 
   public shared ({ caller }) func updateCreditScore(creditScore : CreditScore) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not hasUserPermission(caller)) {
       Runtime.trap("Unauthorized: Only users can update credit score");
     };
     switch (profiles.get(caller)) {
