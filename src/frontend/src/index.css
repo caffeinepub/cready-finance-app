@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  src: url("/assets/fonts/PlusJakartaSans.woff2") format("woff2");
+  font-weight: 300 700;
+  font-display: swap;
+}
+
+@layer base {
+  :root {
+    --radius: 0.75rem;
+
+    /* Cready Blue theme - OKLCH values */
+    --background: 0.965 0.006 240;
+    --foreground: 0.14 0.025 255;
+    --card: 1 0 0;
+    --card-foreground: 0.14 0.025 255;
+    --popover: 1 0 0;
+    --popover-foreground: 0.14 0.025 255;
+
+    /* Primary brand blue: #1E63B6 */
+    --primary: 0.46 0.16 255;
+    --primary-foreground: 0.99 0 0;
+
+    /* Secondary: light blue tint */
+    --secondary: 0.94 0.018 240;
+    --secondary-foreground: 0.46 0.16 255;
+
+    /* Muted */
+    --muted: 0.94 0.008 240;
+    --muted-foreground: 0.52 0.015 240;
+
+    /* Accent */
+    --accent: 0.94 0.018 240;
+    --accent-foreground: 0.46 0.16 255;
+
+    /* Destructive */
+    --destructive: 0.58 0.22 27;
+    --destructive-foreground: 0.99 0 0;
+
+    /* Border & Input */
+    --border: 0.89 0.012 240;
+    --input: 0.89 0.012 240;
+    --ring: 0.46 0.16 255;
+
+    /* Chart colors (gauge: red, orange, yellow, green) */
+    --chart-1: 0.56 0.22 27;
+    --chart-2: 0.72 0.18 50;
+    --chart-3: 0.84 0.17 85;
+    --chart-4: 0.6 0.18 150;
+    --chart-5: 0.46 0.16 255;
+
+    /* Sidebar */
+    --sidebar: 1 0 0;
+    --sidebar-foreground: 0.14 0.025 255;
+    --sidebar-primary: 0.46 0.16 255;
+    --sidebar-primary-foreground: 0.99 0 0;
+    --sidebar-accent: 0.94 0.018 240;
+    --sidebar-accent-foreground: 0.46 0.16 255;
+    --sidebar-border: 0.89 0.012 240;
+    --sidebar-ring: 0.46 0.16 255;
+
+    /* Custom tokens */
+    --brand-blue: 0.46 0.16 255;
+    --brand-blue-dark: 0.38 0.16 258;
+    --brand-blue-light: 0.92 0.04 240;
+    --success: 0.6 0.18 150;
+    --warning: 0.75 0.17 72;
+    --danger: 0.56 0.22 27;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
